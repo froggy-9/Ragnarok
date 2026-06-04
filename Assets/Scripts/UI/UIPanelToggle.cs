@@ -20,7 +20,14 @@ namespace DeadLetterOffice.UI
             if (_panel != null)
             {
                 _panel.transform.SetAsLastSibling();
-                _panel.SetActive(true);
+                if (_panel.TryGetComponent(out UIPanelAnimator animator))
+                {
+                    animator.Show();
+                }
+                else
+                {
+                    _panel.SetActive(true);
+                }
             }
         }
 
@@ -28,7 +35,14 @@ namespace DeadLetterOffice.UI
         {
             if (_panel != null)
             {
-                _panel.SetActive(false);
+                if (_panel.activeSelf && _panel.TryGetComponent(out UIPanelAnimator animator))
+                {
+                    animator.Hide();
+                }
+                else
+                {
+                    _panel.SetActive(false);
+                }
             }
         }
 

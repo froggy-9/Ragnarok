@@ -171,6 +171,7 @@ namespace DeadLetterOffice.Editor
         {
             GameObject panel = CreatePanel(parent, "HelpPanel", Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(0.02f, 0.03f, 0.07f, 0.92f));
             Stretch(panel.GetComponent<RectTransform>(), Vector2.zero, Vector2.zero);
+            AddPanelMotion(panel);
 
             TextMeshProUGUI title = CreateText(panel.transform, "HelpTitle", "여정 기록", 34, TextAlignmentOptions.Left, new Color(0.95f, 0.88f, 0.7f, 1f));
             SetRect(title.rectTransform, Anchor.TopLeft, new Vector2(190f, -96f), new Vector2(420f, 56f));
@@ -700,6 +701,80 @@ namespace DeadLetterOffice.Editor
             Image image = panel.AddComponent<Image>();
             image.color = color;
             return panel;
+        }
+
+        private static void AddPanelMotion(GameObject panel)
+        {
+            if (panel.GetComponent<CanvasGroup>() == null)
+            {
+                panel.AddComponent<CanvasGroup>();
+            }
+
+            if (panel.GetComponent<UIPanelAnimator>() == null)
+            {
+                panel.AddComponent<UIPanelAnimator>();
+            }
+        }
+
+        private static Transform CreateVerticalScrollContent(
+            Transform parent,
+            string name,
+            Vector2 insetMin,
+            Vector2 insetMax,
+            float spacing,
+            out ScrollRect scrollRect)
+        {
+            GameObject root = CreatePanel(parent, name, Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(1f, 1f, 1f, 0.035f));
+            Stretch(root.GetComponent<RectTransform>(), insetMin, insetMax);
+
+            scrollRect = root.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.scrollSensitivity = 32f;
+
+            GameObject viewport = CreatePanel(root.transform, "Viewport", Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0f));
+            Stretch(viewport.GetComponent<RectTransform>(), Vector2.zero, new Vector2(-16f, 0f));
+            viewport.AddComponent<Mask>().showMaskGraphic = false;
+
+            GameObject content = CreateRect(viewport.transform, "Content", Anchor.Stretch, Vector2.zero, Vector2.zero);
+            RectTransform contentRect = content.GetComponent<RectTransform>();
+            contentRect.anchorMin = new Vector2(0f, 1f);
+            contentRect.anchorMax = new Vector2(1f, 1f);
+            contentRect.pivot = new Vector2(0.5f, 1f);
+            contentRect.anchoredPosition = Vector2.zero;
+            contentRect.sizeDelta = Vector2.zero;
+
+            VerticalLayoutGroup layout = content.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(10, 10, 12, 12);
+            layout.spacing = spacing;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            ContentSizeFitter fitter = content.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            GameObject scrollbarObject = CreatePanel(root.transform, "Scrollbar", Anchor.Right, new Vector2(-6f, 0f), new Vector2(8f, 0f), new Color(1f, 1f, 1f, 0.14f));
+            RectTransform scrollbarRect = scrollbarObject.GetComponent<RectTransform>();
+            scrollbarRect.anchorMin = new Vector2(1f, 0f);
+            scrollbarRect.anchorMax = new Vector2(1f, 1f);
+            scrollbarRect.offsetMin = new Vector2(-12f, 10f);
+            scrollbarRect.offsetMax = new Vector2(-4f, -10f);
+
+            GameObject handle = CreatePanel(scrollbarObject.transform, "Handle", Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(1f, 0.92f, 0.68f, 0.74f));
+            Stretch(handle.GetComponent<RectTransform>(), Vector2.zero, Vector2.zero);
+
+            Scrollbar scrollbar = scrollbarObject.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.targetGraphic = handle.GetComponent<Image>();
+            scrollbar.handleRect = handle.GetComponent<RectTransform>();
+
+            scrollRect.viewport = viewport.GetComponent<RectTransform>();
+            scrollRect.content = contentRect;
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+
+            return content.transform;
         }
 
         private static GameObject CreateImage(Transform parent, string name, Anchor anchor, Vector2 position, Vector2 size, Sprite sprite, Color color)

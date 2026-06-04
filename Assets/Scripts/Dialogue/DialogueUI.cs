@@ -96,6 +96,7 @@ namespace DeadLetterOffice.Dialogue
 
                 DialogueChoiceSO capturedChoice = choice;
                 button.onClick.AddListener(() => onSelected?.Invoke(capturedChoice));
+                button.gameObject.SetActive(true);
                 _spawnedChoiceButtons.Add(button);
             }
         }
