@@ -134,4 +134,18 @@ namespace DeadLetterOffice.Core
             LockPlayer = lockPlayer;
         }
     }
+
+    public readonly struct QuestObjectiveChangedEvent
+    {
+        public readonly string ObjectiveText;
+        public readonly Transform Target;
+        public readonly int StaticDistanceMeters;
+
+        public QuestObjectiveChangedEvent(string objectiveText, Transform target = null, int staticDistanceMeters = -1)
+        {
+            ObjectiveText = objectiveText;
+            Target = target;
+            StaticDistanceMeters = staticDistanceMeters;
+        }
+    }
 }
