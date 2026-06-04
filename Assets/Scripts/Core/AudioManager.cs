@@ -6,6 +6,10 @@ namespace DeadLetterOffice.Core
 {
     public class AudioManager : MonoBehaviour
     {
+        private const string MasterVolumeKey = "DLO_Audio_MasterVolume";
+        private const string BgmVolumeKey = "DLO_Audio_BgmVolume";
+        private const string SfxVolumeKey = "DLO_Audio_SfxVolume";
+
         [Header("Audio Sources")]
         [SerializeField] private AudioSource _bgmSource;
         [SerializeField] private AudioSource _ambientSource;
@@ -21,6 +25,13 @@ namespace DeadLetterOffice.Core
         [SerializeField, Range(0f, 1f)] private float _sfxVolume = 1f;
 
         private readonly Queue<AudioSource> _sfxPool = new();
+        private float _currentBgmCueVolume = 1f;
+        private float _currentAmbientCueVolume = 1f;
+        private float _currentVoiceCueVolume = 1f;
+
+        public float MasterVolume => _masterVolume;
+        public float BgmVolume => _bgmVolume;
+        public float SfxVolume => _sfxVolume;
 
         private void Awake()
         {
@@ -32,6 +43,8 @@ namespace DeadLetterOffice.Core
             }
 
             ServiceLocator.Register(this);
+            LoadVolumeSettings();
+            ApplySourceVolumes();
             InitSfxPool();
         }
 
@@ -88,7 +101,8 @@ namespace DeadLetterOffice.Core
             }
 
             _bgmSource.clip = clip;
-            _bgmSource.volume = cue.Volume * _bgmVolume * _masterVolume;
+            _currentBgmCueVolume = cue.Volume;
+            _bgmSource.volume = _currentBgmCueVolume * _bgmVolume * _masterVolume;
             _bgmSource.pitch = cue.Pitch;
             _bgmSource.loop = cue.Loop;
             _bgmSource.Play();
@@ -103,7 +117,8 @@ namespace DeadLetterOffice.Core
             }
 
             _ambientSource.clip = clip;
-            _ambientSource.volume = cue.Volume * _masterVolume;
+            _currentAmbientCueVolume = cue.Volume;
+            _ambientSource.volume = _currentAmbientCueVolume * _masterVolume;
             _ambientSource.pitch = cue.Pitch;
             _ambientSource.loop = true;
             _ambientSource.Play();
@@ -119,7 +134,8 @@ namespace DeadLetterOffice.Core
 
             _voiceSource.Stop();
             _voiceSource.clip = clip;
-            _voiceSource.volume = cue.Volume * _masterVolume;
+            _currentVoiceCueVolume = cue.Volume;
+            _voiceSource.volume = _currentVoiceCueVolume * _masterVolume;
             _voiceSource.pitch = cue.Pitch;
             _voiceSource.loop = false;
             _voiceSource.Play();
@@ -175,6 +191,59 @@ namespace DeadLetterOffice.Core
             source.clip = null;
             source.gameObject.SetActive(false);
             _sfxPool.Enqueue(source);
+        }
+
+        public void SetMasterVolume(float value)
+        {
+            _masterVolume = Mathf.Clamp01(value);
+            SaveVolumeSettings();
+            ApplySourceVolumes();
+        }
+
+        public void SetBgmVolume(float value)
+        {
+            _bgmVolume = Mathf.Clamp01(value);
+            SaveVolumeSettings();
+            ApplySourceVolumes();
+        }
+
+        public void SetSfxVolume(float value)
+        {
+            _sfxVolume = Mathf.Clamp01(value);
+            SaveVolumeSettings();
+        }
+
+        private void ApplySourceVolumes()
+        {
+            if (_bgmSource != null)
+            {
+                _bgmSource.volume = _currentBgmCueVolume * _bgmVolume * _masterVolume;
+            }
+
+            if (_ambientSource != null)
+            {
+                _ambientSource.volume = _currentAmbientCueVolume * _masterVolume;
+            }
+
+            if (_voiceSource != null)
+            {
+                _voiceSource.volume = _currentVoiceCueVolume * _masterVolume;
+            }
+        }
+
+        private void LoadVolumeSettings()
+        {
+            _masterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, _masterVolume);
+            _bgmVolume = PlayerPrefs.GetFloat(BgmVolumeKey, _bgmVolume);
+            _sfxVolume = PlayerPrefs.GetFloat(SfxVolumeKey, _sfxVolume);
+        }
+
+        private void SaveVolumeSettings()
+        {
+            PlayerPrefs.SetFloat(MasterVolumeKey, _masterVolume);
+            PlayerPrefs.SetFloat(BgmVolumeKey, _bgmVolume);
+            PlayerPrefs.SetFloat(SfxVolumeKey, _sfxVolume);
+            PlayerPrefs.Save();
         }
     }
 }

@@ -107,6 +107,15 @@ namespace DeadLetterOffice.State
             PlayerPrefs.Save();
         }
 
+        public void ResetGame()
+        {
+            DeleteSave();
+            if (_gameState != null)
+            {
+                _gameState.ResetRuntimeState();
+            }
+        }
+
         private void RestoreFlags(SaveData data)
         {
             foreach (FlagSO flag in _gameState.GetAllFlags())
