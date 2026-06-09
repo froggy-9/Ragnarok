@@ -6,6 +6,7 @@ using DeadLetterOffice.NPC;
 using DeadLetterOffice.Player;
 using DeadLetterOffice.Scene;
 using DeadLetterOffice.State;
+using DeadLetterOffice.UI;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -191,6 +192,25 @@ namespace DeadLetterOffice.Editor
             NarrationUI narrationUI = root.AddComponent<NarrationUI>();
             Set(narrationUI, "_root", narrationPanel);
             Set(narrationUI, "_text", narrationText);
+
+            GameObject promptPanel = CreatePanel(root.transform, "InteractionPrompt", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 270f), new Vector2(360f, 54f));
+            TextMeshProUGUI promptText = CreateText(promptPanel.transform, "PromptText", "F  조사", 20);
+            promptText.alignment = TextAlignmentOptions.Center;
+            promptText.rectTransform.sizeDelta = new Vector2(340f, 44f);
+            InteractionPromptUI promptUI = root.AddComponent<InteractionPromptUI>();
+            Set(promptUI, "_root", promptPanel);
+            Set(promptUI, "_promptText", promptText);
+
+            GameObject crosshair = CreatePanel(root.transform, "ExplorationCrosshair", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(34f, 34f));
+            crosshair.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
+            GameObject diamond = CreatePanel(crosshair.transform, "DiamondMark", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(19f, 19f));
+            diamond.GetComponent<Image>().color = new Color(1f, 0.94f, 0.72f, 0.78f);
+            diamond.transform.localEulerAngles = new Vector3(0f, 0f, 45f);
+            GameObject center = CreatePanel(crosshair.transform, "CenterDot", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(6f, 6f));
+            center.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.96f);
+
+            ExplorationCursorController cursorController = root.AddComponent<ExplorationCursorController>();
+            Set(cursorController, "_crosshairRoot", crosshair);
 
             GameObject dialoguePanel = CreatePanel(root.transform, "DialoguePanel", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 150f), new Vector2(1000f, 210f));
             TextMeshProUGUI nameText = CreateText(dialoguePanel.transform, "NameText", "Speaker", 24);
