@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using DeadLetterOffice.Core;
 
 namespace DeadLetterOffice.UI
 {
@@ -13,12 +14,12 @@ namespace DeadLetterOffice.UI
         [SerializeField] private GameObject _settingsPanel;
 
         [SerializeField] private Key _mapKey = Key.M;
-        [SerializeField] private Key _questKey = Key.J;
+        [SerializeField] private Key _questKey = Key.Q;
         [SerializeField] private Key _helpKey = Key.H;
-        [SerializeField] private Key _archiveKey = Key.I;
-        [SerializeField] private Key _boardKey = Key.B;
+        [SerializeField] private Key _archiveKey = Key.E;
+        [SerializeField] private Key _boardKey = Key.R;
         [SerializeField] private Key _settingsKey = Key.Escape;
-        [SerializeField] private bool _boardUnlocked;
+        [SerializeField] private bool _boardUnlocked = true;
 
         private GameObject[] _panels;
 
@@ -29,23 +30,42 @@ namespace DeadLetterOffice.UI
 
         private void Update()
         {
-            if (WasPressedThisFrame(_settingsKey))
+            if (!CanUsePanels())
             {
-                if (!CloseTopPanel())
+                HideAll();
+                return;
+            }
+
+            if (AnyPanelOpen())
+            {
+                if (WasPressedThisFrame(_settingsKey))
                 {
-                    Show(_settingsPanel);
+                    CloseTopPanel();
+                    return;
+                }
+
+                if (TryCloseActivePanelOnKey(_mapKey, _mapPanel)
+                    || TryCloseActivePanelOnKey(_questKey, _questPanel)
+                    || TryCloseActivePanelOnKey(_helpKey, _helpPanel)
+                    || TryCloseActivePanelOnKey(_archiveKey, _archivePanel)
+                    || TryCloseActivePanelOnKey(_boardKey, _boardPanel))
+                {
+                    return;
                 }
 
                 return;
             }
 
-            ToggleOnKey(_mapKey, _mapPanel);
-            ToggleOnKey(_questKey, _questPanel);
-            ToggleOnKey(_helpKey, _helpPanel);
-            ToggleOnKey(_archiveKey, _archivePanel);
+            SetExplorationModeIfUiMode();
+
+            OpenOnKey(_settingsKey, _settingsPanel);
+            OpenOnKey(_mapKey, _mapPanel);
+            OpenOnKey(_questKey, _questPanel);
+            OpenOnKey(_helpKey, _helpPanel);
+            OpenOnKey(_archiveKey, _archivePanel);
             if (_boardUnlocked)
             {
-                ToggleOnKey(_boardKey, _boardPanel);
+                OpenOnKey(_boardKey, _boardPanel);
             }
         }
 
@@ -62,35 +82,52 @@ namespace DeadLetterOffice.UI
 
         public void Show(GameObject panel)
         {
-            if (panel == null)
+            if (panel == null || !CanUsePanels())
             {
                 return;
             }
 
             panel.transform.SetAsLastSibling();
-            panel.SetActive(true);
+            if (panel.TryGetComponent(out UIPanelAnimator animator))
+            {
+                animator.Show();
+            }
+            else
+            {
+                panel.SetActive(true);
+            }
+
+            SetUiMode();
         }
 
         public void Hide(GameObject panel)
         {
             if (panel != null)
             {
-                panel.SetActive(false);
+                if (panel.activeSelf && panel.TryGetComponent(out UIPanelAnimator animator))
+                {
+                    animator.Hide();
+                }
+                else
+                {
+                    panel.SetActive(false);
+                }
+            }
+
+            if (!AnyPanelOpenExcept(panel))
+            {
+                SetExplorationModeIfUiMode();
             }
         }
 
         public void Toggle(GameObject panel)
         {
-            if (panel == null)
+            if (panel == null || !CanUsePanels())
             {
                 return;
             }
 
-            if (panel.activeSelf)
-            {
-                panel.SetActive(false);
-            }
-            else
+            if (!AnyPanelOpen())
             {
                 Show(panel);
             }
@@ -109,12 +146,23 @@ namespace DeadLetterOffice.UI
             }
         }
 
-        private void ToggleOnKey(Key key, GameObject panel)
+        private void OpenOnKey(Key key, GameObject panel)
         {
             if (WasPressedThisFrame(key))
             {
-                Toggle(panel);
+                Show(panel);
             }
+        }
+
+        private bool TryCloseActivePanelOnKey(Key key, GameObject panel)
+        {
+            if (panel == null || !panel.activeSelf || !WasPressedThisFrame(key))
+            {
+                return false;
+            }
+
+            Hide(panel);
+            return true;
         }
 
         private static bool WasPressedThisFrame(Key key)
@@ -126,6 +174,24 @@ namespace DeadLetterOffice.UI
             }
 
             return keyboard[key].wasPressedThisFrame;
+        }
+
+        private bool AnyPanelOpen()
+        {
+            if (_panels == null)
+            {
+                return false;
+            }
+
+            foreach (GameObject panel in _panels)
+            {
+                if (panel != null && panel.activeSelf)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool CloseTopPanel()
@@ -140,12 +206,56 @@ namespace DeadLetterOffice.UI
                 GameObject panel = _panels[i];
                 if (panel != null && panel.activeSelf)
                 {
-                    panel.SetActive(false);
+                    Hide(panel);
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private bool AnyPanelOpenExcept(GameObject ignoredPanel)
+        {
+            if (_panels == null)
+            {
+                return false;
+            }
+
+            foreach (GameObject panel in _panels)
+            {
+                if (panel != null && panel != ignoredPanel && panel.activeSelf)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void SetUiMode()
+        {
+            if (ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                modeManager.SetUiMode();
+            }
+        }
+
+        private static void SetExplorationModeIfUiMode()
+        {
+            if (ServiceLocator.TryGet(out GameModeManager modeManager) && modeManager.CurrentMode == GameMode.UI)
+            {
+                modeManager.SetExplorationMode();
+            }
+        }
+
+        private static bool CanUsePanels()
+        {
+            if (!ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                return true;
+            }
+
+            return modeManager.CurrentMode == GameMode.Exploration || modeManager.CurrentMode == GameMode.UI;
         }
     }
 }

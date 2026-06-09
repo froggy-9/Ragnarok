@@ -1,4 +1,5 @@
 using UnityEngine;
+using DeadLetterOffice.Core;
 
 namespace DeadLetterOffice.UI
 {
@@ -17,6 +18,11 @@ namespace DeadLetterOffice.UI
 
         public void Show()
         {
+            if (!CanUsePanels())
+            {
+                return;
+            }
+
             if (_panel != null)
             {
                 _panel.transform.SetAsLastSibling();
@@ -28,6 +34,8 @@ namespace DeadLetterOffice.UI
                 {
                     _panel.SetActive(true);
                 }
+
+                SetUiMode();
             }
         }
 
@@ -43,15 +51,55 @@ namespace DeadLetterOffice.UI
                 {
                     _panel.SetActive(false);
                 }
+
+                SetExplorationModeIfUiMode();
             }
         }
 
         public void Toggle()
         {
+            if (!CanUsePanels())
+            {
+                return;
+            }
+
             if (_panel != null)
             {
-                _panel.SetActive(!_panel.activeSelf);
+                if (_panel.activeSelf)
+                {
+                    Hide();
+                }
+                else
+                {
+                    Show();
+                }
             }
+        }
+
+        private static void SetUiMode()
+        {
+            if (ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                modeManager.SetUiMode();
+            }
+        }
+
+        private static void SetExplorationModeIfUiMode()
+        {
+            if (ServiceLocator.TryGet(out GameModeManager modeManager) && modeManager.CurrentMode == GameMode.UI)
+            {
+                modeManager.SetExplorationMode();
+            }
+        }
+
+        private static bool CanUsePanels()
+        {
+            if (!ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                return true;
+            }
+
+            return modeManager.CurrentMode == GameMode.Exploration || modeManager.CurrentMode == GameMode.UI;
         }
     }
 }

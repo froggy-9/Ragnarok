@@ -16,10 +16,14 @@ namespace DeadLetterOffice.UI
         [SerializeField] private GameObject _rewardRoot;
         [SerializeField] private Transform _rewardList;
         [SerializeField] private GameObject _rewardItemTemplate;
+        [SerializeField] private StoryQuestListSO _questListAsset;
         [SerializeField] private StoryQuestSO[] _quests;
+
+        private Button _selectedButton;
 
         private void Awake()
         {
+            UseQuestListAssetIfAssigned();
             BuildList();
             SelectFirstQuest();
         }
@@ -42,16 +46,34 @@ namespace DeadLetterOffice.UI
 
         public void SetQuests(StoryQuestSO[] quests)
         {
+            _questListAsset = null;
             _quests = quests;
+            BuildList();
+            SelectFirstQuest();
+        }
+
+        public void SetQuestList(StoryQuestListSO questList)
+        {
+            _questListAsset = questList;
+            UseQuestListAssetIfAssigned();
             BuildList();
             SelectFirstQuest();
         }
 
         private void SelectFirstQuest()
         {
-            if (_quests != null && _quests.Length > 0)
+            if (_quests == null)
             {
-                SelectQuest(_quests[0]);
+                return;
+            }
+
+            foreach (StoryQuestSO quest in _quests)
+            {
+                if (quest != null)
+                {
+                    SelectQuest(quest);
+                    return;
+                }
             }
         }
 
@@ -64,12 +86,14 @@ namespace DeadLetterOffice.UI
 
             ClearChildren(_questList, _questButtonTemplate.gameObject);
             _questButtonTemplate.gameObject.SetActive(false);
+            _selectedButton = null;
 
             if (_quests == null)
             {
                 return;
             }
 
+            StoryQuestType? lastType = null;
             foreach (StoryQuestSO quest in _quests)
             {
                 if (quest == null)
@@ -77,29 +101,38 @@ namespace DeadLetterOffice.UI
                     continue;
                 }
 
+                if (lastType != quest.Type)
+                {
+                    CreateGroupHeader(quest.Type);
+                    lastType = quest.Type;
+                }
+
                 Button button = Instantiate(_questButtonTemplate, _questList);
                 button.gameObject.SetActive(true);
+                button.GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 92f);
+
                 TMP_Text label = button.GetComponentInChildren<TMP_Text>();
                 if (label != null)
                 {
-                    string prefix = quest.Type == StoryQuestType.Main ? "개척 임무" : "모험 임무";
-                    label.text = $"{prefix}\n{quest.Title}";
+                    label.alignment = TextAlignmentOptions.Left;
+                    label.text = BuildQuestButtonLabel(quest);
                 }
 
-                button.onClick.AddListener(() => SelectQuest(quest));
+                button.onClick.AddListener(() => SelectQuest(quest, button));
             }
         }
 
-        private void SelectQuest(StoryQuestSO quest)
+        private void SelectQuest(StoryQuestSO quest, Button selectedButton = null)
         {
             if (quest == null)
             {
                 return;
             }
 
+            SetSelectedButton(selectedButton);
             SetText(_titleText, quest.Title);
-            SetText(_areaText, quest.Area);
-            SetText(_objectiveText, quest.Objective);
+            SetText(_areaText, string.IsNullOrWhiteSpace(quest.Area) ? "" : $"⌖ {quest.Area}");
+            SetText(_objectiveText, $"▶ {quest.Objective}");
             SetText(_descriptionText, quest.Description);
             BuildRewards(quest.Rewards);
         }
@@ -133,14 +166,76 @@ namespace DeadLetterOffice.UI
                 TMP_Text label = item.GetComponentInChildren<TMP_Text>();
                 if (label != null)
                 {
-                    label.text = reward.Amount > 1 ? $"{reward.Name} x{reward.Amount}" : reward.Name;
+                    label.text = reward.Amount > 1 ? $"x{reward.Amount}" : reward.ItemName;
                 }
 
-                Image icon = item.GetComponentInChildren<Image>();
-                if (icon != null && reward.Icon != null)
+                Image[] images = item.GetComponentsInChildren<Image>(true);
+                foreach (Image image in images)
                 {
-                    icon.sprite = reward.Icon;
+                    if (image.gameObject == item)
+                    {
+                        continue;
+                    }
+
+                    if (reward.Icon != null)
+                    {
+                        image.sprite = reward.Icon;
+                        image.color = Color.white;
+                    }
+
+                    break;
                 }
+            }
+        }
+
+        private void CreateGroupHeader(StoryQuestType type)
+        {
+            GameObject header = new GameObject($"Header_{type}", typeof(RectTransform));
+            header.transform.SetParent(_questList, false);
+            RectTransform rect = header.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(0f, 34f);
+
+            TMP_Text label = header.AddComponent<TextMeshProUGUI>();
+            label.fontSize = 20f;
+            label.alignment = TextAlignmentOptions.Left;
+            label.color = new Color(0.95f, 0.9f, 0.76f, 1f);
+            label.text = type switch
+            {
+                StoryQuestType.Main => "스토리 임무",
+                StoryQuestType.Commission => "의뢰 임무",
+                _ => "서브 임무"
+            };
+        }
+
+        private void UseQuestListAssetIfAssigned()
+        {
+            if (_questListAsset != null)
+            {
+                _quests = _questListAsset.Quests;
+            }
+        }
+
+        private static string BuildQuestButtonLabel(StoryQuestSO quest)
+        {
+            string marker = quest.Type == StoryQuestType.Main ? "◆" : "◇";
+            string chapter = string.IsNullOrWhiteSpace(quest.ChapterName) ? "" : $"\n<size=80%>{quest.ChapterName}</size>";
+            string distance = quest.DistanceMeters > 0 ? $"\n<size=75%>{quest.DistanceMeters}m</size>" : "";
+            string completed = quest.Completed ? "  <size=75%>완료</size>" : "";
+            return $"{marker} {quest.Title}{completed}{chapter}{distance}";
+        }
+
+        private void SetSelectedButton(Button selectedButton)
+        {
+            if (_selectedButton != null && _selectedButton.targetGraphic != null)
+            {
+                _selectedButton.targetGraphic.color = new Color(0.12f, 0.16f, 0.22f, 0.72f);
+            }
+
+            _selectedButton = selectedButton;
+
+            if (_selectedButton != null && _selectedButton.targetGraphic != null)
+            {
+                _selectedButton.targetGraphic.color = new Color(0.95f, 0.9f, 0.76f, 0.22f);
             }
         }
 

@@ -147,7 +147,7 @@ namespace DeadLetterOffice.UI
 
         private void SetupTabs()
         {
-            if (_tabButtons == null || _tabSections == null)
+            if (_tabButtons == null)
             {
                 return;
             }
@@ -162,7 +162,14 @@ namespace DeadLetterOffice.UI
                 }
             }
 
-            ShowTab(0);
+            if (_tabSections != null && _tabSections.Length > 0)
+            {
+                ShowTab(0);
+            }
+            else
+            {
+                UpdateTabVisuals(0);
+            }
         }
 
         public void ShowTab(int index)
