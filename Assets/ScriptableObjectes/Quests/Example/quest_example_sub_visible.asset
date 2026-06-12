@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81d9442e0c529c4c9d7969788425bd6, type: 3}
+  m_Name: quest_example_sub_visible
+  m_EditorClassIdentifier: Assembly-CSharp::DeadLetterOffice.UI.StoryQuestSO
+  _type: 1
+  _availableByDefault: 1
+  _requiredFlags: []
+  _requiredUnlockItems: []
+  _requiredCompletedUnlockQuests: []
+  _requiredStartFlags: []
+  _requiredItems: []
+  _requiredCompletedQuests: []
+  _completionFlag: {fileID: 0}
+  _completed: 0
+  _title: "예시 서브 임무 - 바로 보임"
+  _chapterName: "Quest Example"
+  _area: "우체국 앞길"
+  _objective: "우체국 앞 게시판 살펴보기"
+  _distanceMeters: 35
+  _description: "퀘스트 리스트와 스크롤 동작 확인용으로 처음부터 보이는 서브 퀘스트 예시다."
+  _lockedMessage: "이 서브 임무는 처음부터 진행할 수 있다."
+  _progressFormat: "{0}/{1}"
+  _progressCurrent: 0
+  _progressRequired: 1
+  _rewards: []

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81d9442e0c529c4c9d7969788425bd6, type: 3}
+  m_Name: quest_example_sub_archway
+  m_EditorClassIdentifier: Assembly-CSharp::DeadLetterOffice.UI.StoryQuestSO
+  _type: 1
+  _availableByDefault: 0
+  _requiredFlags:
+  - {fileID: 11400000, guid: 1b877f459fd14482b31b34c83144f9c1, type: 2}
+  _requiredUnlockItems: []
+  _requiredCompletedUnlockQuests: []
+  _requiredStartFlags: []
+  _requiredItems: []
+  _requiredCompletedQuests: []
+  _completionFlag: {fileID: 11400000, guid: b1ed6a85011042ac992510e6dde1ce2f, type: 2}
+  _completed: 0
+  _title: "예시 서브 임무 - 낡은 아치"
+  _chapterName: "Quest Example"
+  _area: "빗물 고인 골목"
+  _objective: "낡은 아치 아래 단서 확인하기"
+  _distanceMeters: 73
+  _description: "특정 장소 방문 플래그가 켜졌을 때만 해금되는 서브 퀘스트 예시다. flag_example_visit_archway가 true가 되면 목록에 나타난다."
+  _lockedMessage: "낡은 아치 근처에 먼저 도착해야 한다."
+  _progressFormat: "{0}/{1}"
+  _progressCurrent: 0
+  _progressRequired: 1
+  _rewards: []

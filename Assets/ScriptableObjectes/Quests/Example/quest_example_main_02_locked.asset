@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81d9442e0c529c4c9d7969788425bd6, type: 3}
+  m_Name: quest_example_main_02_locked
+  m_EditorClassIdentifier: Assembly-CSharp::DeadLetterOffice.UI.StoryQuestSO
+  _type: 0
+  _availableByDefault: 1
+  _requiredFlags: []
+  _requiredUnlockItems: []
+  _requiredCompletedUnlockQuests: []
+  _requiredStartFlags: []
+  _requiredItems: []
+  _requiredCompletedQuests:
+  - {fileID: 11400000, guid: 230ad0bb9c584ef7a515d8b9cce4378a, type: 2}
+  _completionFlag: {fileID: 11400000, guid: 0b9aa82a191b4fbca95de2a4860d5b44, type: 2}
+  _completed: 0
+  _title: "예시 메인 임무 02 - 잠김"
+  _chapterName: "Quest Example"
+  _area: "우체국 창고"
+  _objective: "창고 안쪽 봉인된 서랍 조사하기"
+  _distanceMeters: 28
+  _description: "메인 퀘스트도 특정 서브 퀘스트 완료 전에는 잠길 수 있다는 예시다. 서브 임무가 완료되면 수락할 수 있다."
+  _lockedMessage: "먼저 '예시 서브 임무 - 낡은 아치'를 완료해야 진행할 수 있다."
+  _progressFormat: "{0}/{1}"
+  _progressCurrent: 0
+  _progressRequired: 1
+  _rewards: []

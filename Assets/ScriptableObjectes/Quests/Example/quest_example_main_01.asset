@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81d9442e0c529c4c9d7969788425bd6, type: 3}
+  m_Name: quest_example_main_01
+  m_EditorClassIdentifier: Assembly-CSharp::DeadLetterOffice.UI.StoryQuestSO
+  _type: 0
+  _availableByDefault: 1
+  _requiredFlags: []
+  _requiredUnlockItems: []
+  _requiredCompletedUnlockQuests: []
+  _requiredStartFlags: []
+  _requiredItems: []
+  _requiredCompletedQuests: []
+  _completionFlag: {fileID: 0}
+  _completed: 0
+  _title: "예시 메인 임무 01"
+  _chapterName: "Quest Example"
+  _area: "야간 우체국"
+  _objective: "관리자의 작업대 확인하기"
+  _distanceMeters: 49
+  _description: "처음부터 목록에 보이는 메인 퀘스트 예시다. 수락하면 메인 트래커의 목표와 진행도가 이 내용으로 바뀐다."
+  _lockedMessage: "이 임무는 처음부터 진행할 수 있다."
+  _progressFormat: "{0}/{1}"
+  _progressCurrent: 0
+  _progressRequired: 1
+  _steps:
+  - _objective: "관리자가 남긴 작업 기록 확인하기"
+    _location: "일간 관제구"
+    _distanceMeters: 49
+    _description: "퀘스트를 수락하면 먼저 관제구에 남은 작업 기록을 확인한다."
+    _progressFormat: "{0}/{1}"
+    _progressCurrent: 0
+    _progressRequired: 1
+    _completedFlag: {fileID: 11400000, guid: 1b877f459fd14482b31b34c83144f9c1, type: 2}
+  - _objective: "아치형 통로로 이동하기"
+    _location: "아치형 통로"
+    _distanceMeters: 85
+    _description: "기록 확인 후 다음 단서가 있는 아치형 통로로 이동한다."
+    _progressFormat: "{0}/{1}"
+    _progressCurrent: 0
+    _progressRequired: 1
+    _completedFlag: {fileID: 0}
+  _rewards: []
