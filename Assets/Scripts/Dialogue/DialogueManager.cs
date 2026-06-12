@@ -1,5 +1,6 @@
 using System.Collections;
 using DeadLetterOffice.Core;
+using DeadLetterOffice.State;
 using UnityEngine;
 
 namespace DeadLetterOffice.Dialogue
@@ -7,11 +8,13 @@ namespace DeadLetterOffice.Dialogue
     public class DialogueManager : MonoBehaviour
     {
         [SerializeField] private DialogueUI _dialogueUI;
+        [SerializeField] private GameStateSO _gameState;
 
         private DialogueSO _currentDialogue;
         private int _currentLineIndex;
         private bool _isWaitingForAdvance;
         private bool _isRunning;
+        private GameMode _previousMode = GameMode.Exploration;
 
         public bool IsRunning => _isRunning;
 
@@ -46,6 +49,15 @@ namespace DeadLetterOffice.Dialogue
             {
                 StopAllCoroutines();
             }
+            else if (ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                _previousMode = modeManager.CurrentMode;
+            }
+
+            if (ServiceLocator.TryGet(out GameModeManager activeModeManager))
+            {
+                activeModeManager.SetDialogueMode();
+            }
 
             _currentDialogue = dialogue;
             _currentLineIndex = 0;
@@ -75,6 +87,11 @@ namespace DeadLetterOffice.Dialogue
             while (_currentDialogue != null && _currentLineIndex < _currentDialogue.Lines.Length)
             {
                 DialogueLineSO line = _currentDialogue.Lines[_currentLineIndex];
+                if (line.AudioCue != null)
+                {
+                    GameEventBus.Publish(new AudioPlayEvent(line.AudioCue));
+                }
+
                 yield return _dialogueUI.ShowLine(line);
 
                 _isWaitingForAdvance = true;
@@ -98,12 +115,12 @@ namespace DeadLetterOffice.Dialogue
 
             if (_currentDialogue != null && _currentDialogue.Choices != null && _currentDialogue.Choices.Length > 0)
             {
-                _dialogueUI.ShowChoices(_currentDialogue.Choices, SelectChoice);
+                _dialogueUI.ShowChoices(_currentDialogue.Choices, SelectChoice, _gameState);
             }
             else
             {
                 _dialogueUI.Hide();
-                _isRunning = false;
+                EndDialogue();
             }
         }
 
@@ -114,7 +131,7 @@ namespace DeadLetterOffice.Dialogue
                 return;
             }
 
-            choice.ApplyResult();
+            choice.ApplyResult(_gameState);
 
             if (choice.NextDialogue != null)
             {
@@ -123,12 +140,23 @@ namespace DeadLetterOffice.Dialogue
             }
 
             _dialogueUI.Hide();
-            _isRunning = false;
+            EndDialogue();
         }
 
         private void OnDialogueRequested(DialogueRequestedEvent evt)
         {
             StartDialogue(evt.Dialogue);
+        }
+
+        private void EndDialogue()
+        {
+            _isRunning = false;
+            _isWaitingForAdvance = false;
+
+            if (ServiceLocator.TryGet(out GameModeManager modeManager))
+            {
+                modeManager.SetMode(_previousMode);
+            }
         }
     }
 }
