@@ -3,6 +3,7 @@ using DeadLetterOffice.Chapter;
 using DeadLetterOffice.Dialogue;
 using DeadLetterOffice.Letter;
 using DeadLetterOffice.State;
+using DeadLetterOffice.UI;
 using UnityEngine;
 
 namespace DeadLetterOffice.Core
@@ -40,10 +41,12 @@ namespace DeadLetterOffice.Core
     public readonly struct ItemCollectedEvent
     {
         public readonly CollectibleSO Item;
+        public readonly int Amount;
 
-        public ItemCollectedEvent(CollectibleSO item)
+        public ItemCollectedEvent(CollectibleSO item, int amount = 1)
         {
             Item = item;
+            Amount = amount;
         }
     }
 
@@ -81,6 +84,18 @@ namespace DeadLetterOffice.Core
     {
     }
 
+    public readonly struct InteractionPromptChangedEvent
+    {
+        public readonly bool Visible;
+        public readonly string Text;
+
+        public InteractionPromptChangedEvent(bool visible, string text)
+        {
+            Visible = visible;
+            Text = text;
+        }
+    }
+
     public readonly struct NarrationRequestedEvent
     {
         public readonly string Text;
@@ -94,10 +109,12 @@ namespace DeadLetterOffice.Core
     public readonly struct DialogueRequestedEvent
     {
         public readonly DialogueSO Dialogue;
+        public readonly Transform FocusTarget;
 
-        public DialogueRequestedEvent(DialogueSO dialogue)
+        public DialogueRequestedEvent(DialogueSO dialogue, Transform focusTarget = null)
         {
             Dialogue = dialogue;
+            FocusTarget = focusTarget;
         }
     }
 
@@ -140,12 +157,38 @@ namespace DeadLetterOffice.Core
         public readonly string ObjectiveText;
         public readonly Transform Target;
         public readonly int StaticDistanceMeters;
+        public readonly string ProgressText;
 
-        public QuestObjectiveChangedEvent(string objectiveText, Transform target = null, int staticDistanceMeters = -1)
+        public QuestObjectiveChangedEvent(string objectiveText, Transform target = null, int staticDistanceMeters = -1, string progressText = "")
         {
             ObjectiveText = objectiveText;
             Target = target;
             StaticDistanceMeters = staticDistanceMeters;
+            ProgressText = progressText;
+        }
+    }
+
+    public readonly struct QuestUnlockedEvent
+    {
+        public readonly StoryQuestSO Quest;
+
+        public QuestUnlockedEvent(StoryQuestSO quest)
+        {
+            Quest = quest;
+        }
+    }
+
+    public readonly struct QuestLogChangedEvent
+    {
+    }
+
+    public readonly struct QuestAcceptedEvent
+    {
+        public readonly StoryQuestSO Quest;
+
+        public QuestAcceptedEvent(StoryQuestSO quest)
+        {
+            Quest = quest;
         }
     }
 }
