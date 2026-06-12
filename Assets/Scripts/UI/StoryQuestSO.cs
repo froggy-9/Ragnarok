@@ -1,3 +1,6 @@
+using DeadLetterOffice.Core;
+using DeadLetterOffice.Letter;
+using DeadLetterOffice.State;
 using UnityEngine;
 
 namespace DeadLetterOffice.UI
@@ -22,29 +25,131 @@ namespace DeadLetterOffice.UI
         public Sprite Icon => _item != null ? _item.Icon : null;
     }
 
-    [CreateAssetMenu(menuName = "Dead Letter Office/UI/Story Quest")]
+    [CreateAssetMenu(menuName = "DLO/Quest/Quest")]
     public class StoryQuestSO : ScriptableObject
     {
+        [Header("Unlock Conditions")]
         [SerializeField] private StoryQuestType _type = StoryQuestType.Main;
+        [SerializeField] private bool _availableByDefault = true;
+        [SerializeField] private FlagSO[] _requiredFlags;
+        [SerializeField] private CollectibleSO[] _requiredUnlockItems;
+        [SerializeField] private StoryQuestSO[] _requiredCompletedUnlockQuests;
+
+        [Header("Start Conditions")]
+        [SerializeField] private FlagSO[] _requiredStartFlags;
+        [SerializeField] private CollectibleSO[] _requiredItems;
+        [SerializeField] private StoryQuestSO[] _requiredCompletedQuests;
+
+        [Header("Runtime State")]
+        [SerializeField] private FlagSO _completionFlag;
         [SerializeField] private bool _completed;
-        [SerializeField] private string _title = "심연으로 추락한 자들";
-        [SerializeField] private string _chapterName = "Noctua Chapter: Act I";
-        [SerializeField] private string _area = "아벨른-VI 큰 황금구역";
-        [SerializeField] private string _objective = "가정용 탐지기 로봇 부품 찾기";
+        private bool _accepted;
+
+        [Header("Display")]
+        [SerializeField] private string _title = "관리자가 알려준 작업";
+        [SerializeField] private string _chapterName = "Chapter 1";
+        [SerializeField] private string _area = "야간 우체국";
+        [SerializeField] private string _objective = "관리자가 알려준 작업대로 가기";
         [Min(0)]
-        [SerializeField] private int _distanceMeters;
+        [SerializeField] private int _distanceMeters = 49;
         [TextArea(3, 8)]
         [SerializeField] private string _description = "의뢰 내용을 확인하고 다음 단서를 추적한다.";
+        [SerializeField] private string _lockedMessage = "조건을 만족해야 진행할 수 있다.";
+        [SerializeField] private string _progressFormat = "{0}/{1}";
+        [Min(0)]
+        [SerializeField] private int _progressCurrent;
+        [Min(1)]
+        [SerializeField] private int _progressRequired = 1;
         [SerializeField] private StoryQuestReward[] _rewards;
 
         public StoryQuestType Type => _type;
-        public bool Completed => _completed;
+        public bool AvailableByDefault => _availableByDefault;
+        public bool Accepted => _accepted;
+        public bool Completed => IsCompleted();
         public string Title => _title;
         public string ChapterName => _chapterName;
         public string Area => _area;
         public string Objective => _objective;
         public int DistanceMeters => _distanceMeters;
         public string Description => _description;
+        public string LockedMessage => _lockedMessage;
+        public int ProgressCurrent => Mathf.Clamp(_progressCurrent, 0, ProgressRequired);
+        public int ProgressRequired => Mathf.Max(1, _progressRequired);
+        public string ProgressText => string.Format(string.IsNullOrWhiteSpace(_progressFormat) ? "{0}/{1}" : _progressFormat, ProgressCurrent, ProgressRequired);
         public StoryQuestReward[] Rewards => _rewards;
+
+        public bool CanRegister()
+        {
+            return _availableByDefault || ConditionUtility.AreFlagsMet(_requiredFlags);
+        }
+
+        public bool CanRegister(GameStateSO gameState)
+        {
+            return _availableByDefault || AreUnlockConditionsMet(gameState);
+        }
+
+        public bool CanStart(GameStateSO gameState)
+        {
+            return ConditionUtility.AreFlagsMet(_requiredStartFlags)
+                && ConditionUtility.AreItemsMet(gameState, _requiredItems)
+                && AreRequiredQuestsCompleted();
+        }
+
+        public bool IsCompleted()
+        {
+            return _completed || (_completionFlag != null && _completionFlag.Value);
+        }
+
+        public void Accept()
+        {
+            _accepted = true;
+        }
+
+        public void SetProgress(int current, int required)
+        {
+            _progressCurrent = Mathf.Max(0, current);
+            _progressRequired = Mathf.Max(1, required);
+        }
+
+        private void OnDisable()
+        {
+            _accepted = false;
+        }
+
+        private bool AreUnlockConditionsMet(GameStateSO gameState)
+        {
+            return ConditionUtility.AreFlagsMet(_requiredFlags)
+                && ConditionUtility.AreItemsMet(gameState, _requiredUnlockItems)
+                && AreQuestsCompleted(_requiredCompletedUnlockQuests);
+        }
+
+        private bool AreRequiredQuestsCompleted()
+        {
+            return AreQuestsCompleted(_requiredCompletedQuests);
+        }
+
+        private static bool AreQuestsCompleted(StoryQuestSO[] quests)
+        {
+            if (quests == null || quests.Length == 0)
+            {
+                return true;
+            }
+
+            foreach (StoryQuestSO quest in quests)
+            {
+                if (quest == null)
+                {
+                    Debug.LogWarning("[StoryQuestSO] Null required quest is treated as no condition.");
+                    continue;
+                }
+
+                if (!quest.Completed)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

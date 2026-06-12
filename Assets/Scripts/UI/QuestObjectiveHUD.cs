@@ -9,11 +9,12 @@ namespace DeadLetterOffice.UI
     {
         [SerializeField] private GameObject _root;
         [SerializeField] private TMP_Text _objectiveText;
+        [SerializeField] private TMP_Text _progressText;
         [SerializeField] private TMP_Text _distanceText;
         [SerializeField] private Image _markerIcon;
         [SerializeField] private Transform _player;
         [SerializeField] private Transform _target;
-        [SerializeField] private string _defaultObjective = "관리자가 알려준 작업대로 가기";
+        [SerializeField] private string _defaultObjective = "Go to the current objective";
         [SerializeField] private int _staticDistanceMeters = 49;
         [SerializeField] private bool _showWhenObjectiveIsEmpty;
 
@@ -24,7 +25,7 @@ namespace DeadLetterOffice.UI
                 _root = gameObject;
             }
 
-            ApplyObjective(_defaultObjective, _target, _staticDistanceMeters);
+            ApplyObjective(_defaultObjective, _target, _staticDistanceMeters, string.Empty);
         }
 
         private void OnEnable()
@@ -50,25 +51,25 @@ namespace DeadLetterOffice.UI
 
         public void SetObjective(string objectiveText)
         {
-            ApplyObjective(objectiveText, _target, _staticDistanceMeters);
+            ApplyObjective(objectiveText, _target, _staticDistanceMeters, string.Empty);
         }
 
         public void SetObjective(string objectiveText, Transform target)
         {
-            ApplyObjective(objectiveText, target, -1);
+            ApplyObjective(objectiveText, target, -1, string.Empty);
         }
 
         public void SetObjective(string objectiveText, int distanceMeters)
         {
-            ApplyObjective(objectiveText, null, distanceMeters);
+            ApplyObjective(objectiveText, null, distanceMeters, string.Empty);
         }
 
         private void OnQuestObjectiveChanged(QuestObjectiveChangedEvent evt)
         {
-            ApplyObjective(evt.ObjectiveText, evt.Target, evt.StaticDistanceMeters);
+            ApplyObjective(evt.ObjectiveText, evt.Target, evt.StaticDistanceMeters, evt.ProgressText);
         }
 
-        private void ApplyObjective(string objectiveText, Transform target, int staticDistanceMeters)
+        private void ApplyObjective(string objectiveText, Transform target, int staticDistanceMeters, string progressText)
         {
             _target = target;
             _staticDistanceMeters = staticDistanceMeters;
@@ -82,6 +83,11 @@ namespace DeadLetterOffice.UI
             if (_objectiveText != null)
             {
                 _objectiveText.text = hasObjective ? objectiveText : string.Empty;
+            }
+
+            if (_progressText != null)
+            {
+                _progressText.text = hasObjective ? progressText : string.Empty;
             }
 
             if (_markerIcon != null)
