@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace DeadLetterOffice.Interaction
 {
-    public class InteractableObject : MonoBehaviour, IInteractable, IInspectable
+    public class InteractableObject : MonoBehaviour, IInteractable, IInspectable, IInteractionPromptProvider
     {
         [SerializeField] private FlagSO _requiredFlag;
+        [SerializeField] private string _promptText = "조사";
         [SerializeField, TextArea(2, 5)] private string _narration;
         [SerializeField] private AudioCueSO _interactSfx;
 
@@ -21,6 +22,11 @@ namespace DeadLetterOffice.Interaction
         public string GetNarration()
         {
             return _narration;
+        }
+
+        public string GetPromptText()
+        {
+            return string.IsNullOrWhiteSpace(_promptText) ? "조사" : _promptText;
         }
 
         public void OnInteract()
