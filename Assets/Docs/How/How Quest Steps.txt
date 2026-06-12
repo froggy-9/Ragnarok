@@ -1,0 +1,36 @@
+Quest Steps 사용법
+
+1. 세부 목표 만들기
+- Quest SO를 열고 Steps 리스트에 목표를 순서대로 추가한다.
+- Objective에는 화면에 보일 세부 목표를 적는다.
+- Location에는 지도/퀘스트 트래커에 보일 위치 이름을 적는다.
+- Distance Meters에는 고정 거리 표시값을 넣는다.
+- Description에는 임무 상세창에 보일 설명을 적는다.
+
+2. 단계 완료 조건 연결
+- 각 Step의 Completed Flag에 해당 단계를 완료시킬 FlagSO를 연결한다.
+- 현재 Step의 Completed Flag가 true가 되면 다음 Step이 자동으로 현재 목표가 된다.
+
+3. 위치 도착 목표
+- 목적지 오브젝트나 Trigger 영역에 MapAreaTrigger를 붙인다.
+- MapAreaTrigger의 Set Flag On Enter에 Step의 Completed Flag와 같은 FlagSO를 넣는다.
+- 플레이어가 Trigger에 들어가면 Flag가 true가 되고 다음 Step으로 넘어간다.
+
+4. NPC 대화 목표
+- NPC가 실행할 DialogueSO를 연다.
+- 대화를 끝까지 봐야 완료라면 DialogueSO의 Set Flag On Complete에 Step의 Completed Flag와 같은 FlagSO를 넣는다.
+- 말을 거는 순간 완료라면 DialogueInteractionPoint의 Set Flags On Interact에 같은 FlagSO를 넣는다.
+
+5. 아이템 획득 목표
+- CollectibleObject의 Set Flag On Collect에 Step의 Completed Flag와 같은 FlagSO를 넣는다.
+- 아이템을 얻으면 해당 Step이 완료된다.
+
+6. 전체 퀘스트 완료
+- 마지막 Step 완료와 전체 Quest 완료는 별도다.
+- Quest SO의 Completion Flag에 전체 퀘스트 완료용 FlagSO를 넣는다.
+- 마지막 연출, 보상 지급, 대화 종료 등 전체 완료 타이밍에 Completion Flag를 true로 바꾼다.
+
+7. 표시 방식
+- 임무 목록과 임무 상세창은 현재 완료되지 않은 첫 Step을 보여준다.
+- 퀘스트 트래커는 Quest Title, 현재 Step Objective, Location, Distance를 표시한다.
+- Steps가 비어 있으면 기존 Quest SO의 Objective, Area, Distance Meters 값을 그대로 사용한다.
