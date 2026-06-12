@@ -5,10 +5,11 @@ using UnityEngine;
 
 namespace DeadLetterOffice.Letter
 {
-    public class LetterPickup : MonoBehaviour, IInteractable
+    public class LetterPickup : MonoBehaviour, IInteractable, IInteractionPromptProvider
     {
         [SerializeField] private GameStateSO _gameState;
         [SerializeField] private LetterSO _letter;
+        [SerializeField] private string _promptText = "편지 확인";
         [SerializeField] private FlagSO _setFlagOnFound;
         [SerializeField] private AudioCueSO _pickupSfx;
         [SerializeField] private bool _disableAfterPickup = true;
@@ -16,6 +17,11 @@ namespace DeadLetterOffice.Letter
         public bool CanInteract()
         {
             return _gameState != null && _letter != null;
+        }
+
+        public string GetPromptText()
+        {
+            return string.IsNullOrWhiteSpace(_promptText) ? "편지 확인" : _promptText;
         }
 
         public void OnInteract()
