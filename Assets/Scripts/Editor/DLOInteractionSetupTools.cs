@@ -25,29 +25,8 @@ namespace DeadLetterOffice.Editor
             }
 
             ClearPreviousCanvas();
-            Canvas canvas = CreateCanvas();
-            GameObject promptRoot = CreatePrompt(canvas.transform);
-            InteractionPromptUI promptUI = promptRoot.AddComponent<InteractionPromptUI>();
-
-            Set(promptUI, "_root", promptRoot);
-            Set(promptUI, "_promptText", promptRoot.transform.Find("PromptText").GetComponent<TextMeshProUGUI>());
-            Set(promptUI, "_prefix", "F");
-
-            CanvasGroup group = promptRoot.GetComponent<CanvasGroup>();
-            if (group == null)
-            {
-                group = promptRoot.AddComponent<CanvasGroup>();
-            }
-
-            group.alpha = 0f;
-            group.interactable = false;
-            group.blocksRaycasts = false;
-            EnsureEventSystem();
-
-            EditorSceneManager.SaveOpenScenes();
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log("[DLOInteractionSetupTools] DevScene_UI interaction canvas rebuilt.");
+            DLOSceneSetupTools.BuildCurrentSceneMainHud();
+            Debug.Log("[DLOInteractionSetupTools] Legacy interaction canvas removed. Interaction prompt is now rebuilt inside DLO_MainHUD.");
         }
 
         [MenuItem("DLO/Setup/Rebuild Current Scene Interaction UI")]

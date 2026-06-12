@@ -18,6 +18,7 @@ namespace DeadLetterOffice.Editor
     {
         private const string DevScenePath = "Assets/Scenes/DevScenes/DevScen.unity";
         private const string HudRootName = "DLO_MainHUD";
+        private const string LegacyInteractionCanvasName = "DLO_InteractionCanvas";
         private const string CircleSpritePath = "Assets/Art/UI/dlo_ui_soft_circle.png";
         private const string DefaultFontAssetPath = "Assets/Art/Fonts/GowunBatang-Regular SDF.asset";
         private const string GameStatePath = "Assets/ScriptableObjectes/GameState/GameState.asset";
@@ -32,6 +33,7 @@ namespace DeadLetterOffice.Editor
             }
 
             Canvas canvas = FindOrCreateCanvas();
+            ClearLegacyInteractionCanvas();
             ClearPreviousHud(canvas.transform);
 
             GameObject hudRoot = CreateRect(canvas.transform, HudRootName, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -40,10 +42,11 @@ namespace DeadLetterOffice.Editor
             hudRect.offsetMax = Vector2.zero;
             hudRoot.AddComponent<UIAudioPlayer>();
             EnsureGameModeManager();
+            QuestSystem questSystem = EnsureQuestSystem();
 
             Sprite circleSprite = GetOrCreateCircleSprite();
             GameObject mapPanel = CreateMapPanel(hudRoot.transform);
-            GameObject questPanel = CreateQuestPanel(hudRoot.transform);
+            GameObject questPanel = CreateQuestPanel(hudRoot.transform, questSystem);
             GameObject helpPanel = CreateHelpPanel(hudRoot.transform);
             GameObject archivePanel = CreateArchivePanel(hudRoot.transform);
             GameObject boardPanel = CreateBoardPanel(hudRoot.transform);
@@ -57,6 +60,7 @@ namespace DeadLetterOffice.Editor
             CreateActionSlotDock(hudRoot.transform);
             CreateInteractionPrompt(hudRoot.transform);
             CreateExplorationCrosshair(hudRoot);
+            CreateQuestUnlockToast(hudRoot.transform);
             GameObject unlockOverlay = CreateUnlockOverlay(hudRoot.transform);
             DLOHudAutoBinder autoBinder = hudRoot.AddComponent<DLOHudAutoBinder>();
             Set(autoBinder, "_miniMap", hudRoot.GetComponentInChildren<MiniMapUI>(true));
@@ -143,6 +147,15 @@ namespace DeadLetterOffice.Editor
             }
         }
 
+        private static void ClearLegacyInteractionCanvas()
+        {
+            GameObject previous = GameObject.Find(LegacyInteractionCanvasName);
+            if (previous != null)
+            {
+                Object.DestroyImmediate(previous);
+            }
+        }
+
         private static void EnsureGameModeManager()
         {
             if (Object.FindFirstObjectByType<GameModeManager>() != null)
@@ -152,6 +165,18 @@ namespace DeadLetterOffice.Editor
 
             GameObject manager = new("DLO_GameModeManager");
             manager.AddComponent<GameModeManager>();
+        }
+
+        private static QuestSystem EnsureQuestSystem()
+        {
+            QuestSystem questSystem = Object.FindFirstObjectByType<QuestSystem>();
+            if (questSystem != null)
+            {
+                return questSystem;
+            }
+
+            GameObject manager = new("DLO_QuestSystem");
+            return manager.AddComponent<QuestSystem>();
         }
 
         private static void CreateMinimap(Transform parent, Sprite circleSprite, GameObject mapPanel)
@@ -338,7 +363,7 @@ namespace DeadLetterOffice.Editor
             UnityEventTools.AddPersistentListener(questButton.onClick, questToggle.Show);
         }
 
-        private static GameObject CreateQuestPanel(Transform parent)
+        private static GameObject CreateQuestPanel(Transform parent, QuestSystem questSystem)
         {
             GameObject panel = CreatePanel(parent, "QuestPanel", Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(0.02f, 0.02f, 0.025f, 0.88f));
             Stretch(panel.GetComponent<RectTransform>(), Vector2.zero, Vector2.zero);
@@ -355,7 +380,15 @@ namespace DeadLetterOffice.Editor
             TextMeshProUGUI listTitle = CreateText(left.transform, "QuestListTitle", "임무", 22, TextAlignmentOptions.Left, Color.white);
             SetRect(listTitle.rectTransform, Anchor.TopLeft, new Vector2(18f, -16f), new Vector2(220f, 36f));
 
-            Transform questListContent = CreateVerticalScrollContent(left.transform, "QuestScroll", new Vector2(16f, 68f), new Vector2(-16f, -18f), 8f, out _);
+            Button mainTabButton = CreateTextButton(left.transform, "MainQuestTabButton", "메인", Anchor.TopLeft, new Vector2(18f, -58f), new Vector2(150f, 40f));
+            mainTabButton.GetComponent<Image>().color = new Color(0.95f, 0.87f, 0.62f, 0.92f);
+            AddButtonAudio(mainTabButton);
+
+            Button subTabButton = CreateTextButton(left.transform, "SubQuestTabButton", "서브", Anchor.TopLeft, new Vector2(184f, -58f), new Vector2(150f, 40f));
+            subTabButton.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.18f);
+            AddButtonAudio(subTabButton);
+
+            Transform questListContent = CreateVerticalScrollContent(left.transform, "QuestScroll", new Vector2(16f, 116f), new Vector2(-16f, -18f), 8f, out _);
             Transform questList = questListContent;
 
             Button questButtonTemplate = CreateTextButton(questList.transform, "QuestButtonTemplate", "개척 임무\n심연으로 추락한 자들", Anchor.TopLeft, Vector2.zero, new Vector2(320f, 64f));
@@ -405,6 +438,8 @@ namespace DeadLetterOffice.Editor
             Set(questLogUI, "_root", panel);
             Set(questLogUI, "_questList", questList.transform);
             Set(questLogUI, "_questButtonTemplate", questButtonTemplate);
+            Set(questLogUI, "_mainTabButton", mainTabButton);
+            Set(questLogUI, "_subTabButton", subTabButton);
             Set(questLogUI, "_titleText", title);
             Set(questLogUI, "_areaText", area);
             Set(questLogUI, "_objectiveText", objective);
@@ -412,6 +447,7 @@ namespace DeadLetterOffice.Editor
             Set(questLogUI, "_rewardRoot", rewardRoot);
             Set(questLogUI, "_rewardList", rewardList.transform);
             Set(questLogUI, "_rewardItemTemplate", rewardTemplate);
+            Set(questLogUI, "_questSystem", questSystem);
 
             panel.SetActive(false);
             return panel;
@@ -889,6 +925,7 @@ namespace DeadLetterOffice.Editor
             Set(promptUI, "_root", root);
             Set(promptUI, "_promptText", label);
             Set(promptUI, "_prefix", string.Empty);
+            Set(promptUI, "_displayPriority", 10);
 
             CanvasGroup group = root.GetComponent<CanvasGroup>();
             if (group == null)
@@ -918,6 +955,39 @@ namespace DeadLetterOffice.Editor
 
             ExplorationCursorController cursorController = hudRoot.AddComponent<ExplorationCursorController>();
             Set(cursorController, "_crosshairRoot", root);
+        }
+
+        private static void CreateQuestUnlockToast(Transform parent)
+        {
+            GameObject root = CreateRect(parent, "QuestUnlockToast", Anchor.Top, new Vector2(0f, 118f), new Vector2(640f, 96f));
+            CanvasGroup canvasGroup = root.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+            GameObject banner = CreatePanel(root.transform, "Banner", Anchor.Stretch, Vector2.zero, Vector2.zero, new Color(0.55f, 0.18f, 0.08f, 0.92f));
+            Stretch(banner.GetComponent<RectTransform>(), new Vector2(52f, 14f), new Vector2(-52f, -14f));
+
+            GameObject leftWing = CreatePanel(root.transform, "LeftWing", Anchor.Left, new Vector2(38f, 0f), new Vector2(108f, 28f), new Color(1f, 0.78f, 0.35f, 0.72f));
+            leftWing.transform.localEulerAngles = new Vector3(0f, 0f, -12f);
+
+            GameObject rightWing = CreatePanel(root.transform, "RightWing", Anchor.Right, new Vector2(-38f, 0f), new Vector2(108f, 28f), new Color(1f, 0.78f, 0.35f, 0.72f));
+            rightWing.transform.localEulerAngles = new Vector3(0f, 0f, 12f);
+
+            GameObject jewel = CreatePanel(root.transform, "CenterJewel", Anchor.Center, new Vector2(-216f, 0f), new Vector2(46f, 46f), new Color(0.12f, 0.55f, 0.58f, 0.96f));
+            jewel.transform.localEulerAngles = new Vector3(0f, 0f, 45f);
+
+            TextMeshProUGUI message = CreateText(root.transform, "Message", "새 임무 개방", 22, TextAlignmentOptions.Center, new Color(1f, 0.92f, 0.7f, 1f));
+            SetRect(message.rectTransform, Anchor.Center, new Vector2(42f, 0f), new Vector2(460f, 42f));
+            AddShadow(message.gameObject);
+
+            QuestUnlockToastUI toast = root.AddComponent<QuestUnlockToastUI>();
+            Set(toast, "_root", root);
+            Set(toast, "_banner", root.GetComponent<RectTransform>());
+            Set(toast, "_canvasGroup", canvasGroup);
+            Set(toast, "_messageText", message);
+
+            root.SetActive(false);
         }
 
         private static GameObject CreateUnlockOverlay(Transform parent)
@@ -1312,6 +1382,18 @@ namespace DeadLetterOffice.Editor
             if (property != null)
             {
                 property.stringValue = value;
+                serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(target);
+            }
+        }
+
+        private static void Set(Object target, string propertyName, int value)
+        {
+            SerializedObject serializedObject = new(target);
+            SerializedProperty property = serializedObject.FindProperty(propertyName);
+            if (property != null)
+            {
+                property.intValue = value;
                 serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(target);
             }
