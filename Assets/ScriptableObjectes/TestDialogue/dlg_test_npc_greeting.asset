@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: defd773ba18af074080448829c0f4ba0, type: 3}
+  m_Name: dlg_test_npc_greeting
+  m_EditorClassIdentifier: Assembly-CSharp::DeadLetterOffice.Dialogue.DialogueSO
+  _requiredFlags: []
+  _lines:
+  - {fileID: 11400000, guid: df4a8f2d1b115da4496f467270c1ddb1, type: 2}
+  _choices:
+  - {fileID: 11400000, guid: 949db909aafd9024fb998ad745a6c660, type: 2}
+  _setFlagOnComplete: {fileID: 0}
