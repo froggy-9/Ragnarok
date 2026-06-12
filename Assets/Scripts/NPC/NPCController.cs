@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace DeadLetterOffice.NPC
 {
-    public class NPCController : MonoBehaviour, IInteractable
+    public class NPCController : MonoBehaviour, IInteractable, IInteractionPromptProvider
     {
         [SerializeField] private NPCDataSO _npcData;
+        [SerializeField] private string _promptText = "대화";
 
         private DialogueSO _cachedDialogue;
 
@@ -35,7 +36,12 @@ namespace DeadLetterOffice.NPC
                 return;
             }
 
-            GameEventBus.Publish(new DialogueRequestedEvent(_cachedDialogue));
+            GameEventBus.Publish(new DialogueRequestedEvent(_cachedDialogue, transform));
+        }
+
+        public string GetPromptText()
+        {
+            return string.IsNullOrWhiteSpace(_promptText) ? "대화" : _promptText;
         }
 
         private void RefreshDialogue()
