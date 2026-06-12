@@ -334,22 +334,36 @@ namespace DeadLetterOffice.Editor
             GameObject diamond = CreateImage(tracker.transform, "QuestMarker", Anchor.Left, new Vector2(48f, -2f), new Vector2(28f, 28f), circleSprite, new Color(1f, 0.67f, 0.12f, 0.95f));
             diamond.transform.localEulerAngles = new Vector3(0f, 0f, 45f);
 
-            TextMeshProUGUI objective = CreateText(tracker.transform, "ObjectiveText", "관리자가 알려준 작업대로 가기", 25, TextAlignmentOptions.Left, Color.white);
+            TextMeshProUGUI title = CreateText(tracker.transform, "QuestTitleText", "", 21, TextAlignmentOptions.Left, Color.white);
+            title.enableAutoSizing = true;
+            title.fontSizeMin = 15f;
+            title.fontSizeMax = 21f;
+            SetRect(title.rectTransform, Anchor.TopLeft, new Vector2(84f, -2f), new Vector2(330f, 24f));
+            AddShadow(title.gameObject);
+
+            TextMeshProUGUI location = CreateText(tracker.transform, "QuestLocationText", "", 15, TextAlignmentOptions.Left, new Color(1f, 0.78f, 0.25f, 1f));
+            SetRect(location.rectTransform, Anchor.TopLeft, new Vector2(84f, -26f), new Vector2(220f, 20f));
+            AddShadow(location.gameObject);
+
+            TextMeshProUGUI objective = CreateText(tracker.transform, "ObjectiveText", "", 18, TextAlignmentOptions.Left, Color.white);
             objective.enableAutoSizing = true;
-            objective.fontSizeMin = 16f;
-            objective.fontSizeMax = 25f;
-            SetRect(objective.rectTransform, Anchor.TopLeft, new Vector2(84f, -2f), new Vector2(330f, 38f));
+            objective.fontSizeMin = 13f;
+            objective.fontSizeMax = 18f;
+            SetRect(objective.rectTransform, Anchor.TopLeft, new Vector2(84f, -48f), new Vector2(330f, 28f));
             AddShadow(objective.gameObject);
 
-            TextMeshProUGUI distance = CreateText(tracker.transform, "DistanceText", "49m", 17, TextAlignmentOptions.Left, new Color(1f, 0.78f, 0.25f, 1f));
-            SetRect(distance.rectTransform, Anchor.TopLeft, new Vector2(84f, -42f), new Vector2(120f, 24f));
+            TextMeshProUGUI distance = CreateText(tracker.transform, "DistanceText", "", 17, TextAlignmentOptions.Left, new Color(1f, 0.78f, 0.25f, 1f));
+            SetRect(distance.rectTransform, Anchor.TopLeft, new Vector2(310f, -26f), new Vector2(120f, 24f));
             AddShadow(distance.gameObject);
 
             QuestObjectiveHUD hud = tracker.AddComponent<QuestObjectiveHUD>();
             Set(hud, "_root", tracker);
+            Set(hud, "_titleText", title);
             Set(hud, "_objectiveText", objective);
+            Set(hud, "_locationText", location);
             Set(hud, "_distanceText", distance);
             Set(hud, "_markerIcon", diamond.GetComponent<Image>());
+            Set(hud, "_defaultObjective", "");
 
             Image clickImage = tracker.AddComponent<Image>();
             clickImage.color = new Color(1f, 1f, 1f, 0.01f);
@@ -380,15 +394,10 @@ namespace DeadLetterOffice.Editor
             TextMeshProUGUI listTitle = CreateText(left.transform, "QuestListTitle", "임무", 22, TextAlignmentOptions.Left, Color.white);
             SetRect(listTitle.rectTransform, Anchor.TopLeft, new Vector2(18f, -16f), new Vector2(220f, 36f));
 
-            Button mainTabButton = CreateTextButton(left.transform, "MainQuestTabButton", "메인", Anchor.TopLeft, new Vector2(18f, -58f), new Vector2(150f, 40f));
-            mainTabButton.GetComponent<Image>().color = new Color(0.95f, 0.87f, 0.62f, 0.92f);
-            AddButtonAudio(mainTabButton);
+            Button mainTabButton = null;
+            Button subTabButton = null;
 
-            Button subTabButton = CreateTextButton(left.transform, "SubQuestTabButton", "서브", Anchor.TopLeft, new Vector2(184f, -58f), new Vector2(150f, 40f));
-            subTabButton.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0.18f);
-            AddButtonAudio(subTabButton);
-
-            Transform questListContent = CreateVerticalScrollContent(left.transform, "QuestScroll", new Vector2(16f, 116f), new Vector2(-16f, -18f), 8f, out _);
+            Transform questListContent = CreateVerticalScrollContent(left.transform, "QuestScroll", new Vector2(16f, 64f), new Vector2(-16f, -18f), 8f, out _);
             Transform questList = questListContent;
 
             Button questButtonTemplate = CreateTextButton(questList.transform, "QuestButtonTemplate", "개척 임무\n심연으로 추락한 자들", Anchor.TopLeft, Vector2.zero, new Vector2(320f, 64f));
@@ -409,6 +418,17 @@ namespace DeadLetterOffice.Editor
             TextMeshProUGUI description = CreateText(detail.transform, "QuestDescription", "의뢰 내용을 확인하고 다음 단서를 추적한다.", 18, TextAlignmentOptions.Left, new Color(0.78f, 0.78f, 0.78f, 1f));
             description.textWrappingMode = TextWrappingModes.Normal;
             SetRect(description.rectTransform, Anchor.TopLeft, new Vector2(0f, -136f), new Vector2(860f, 190f));
+
+            TextMeshProUGUI progress = CreateText(detail.transform, "QuestProgress", "0/1", 20, TextAlignmentOptions.Left, new Color(0.95f, 0.87f, 0.62f, 1f));
+            SetRect(progress.rectTransform, Anchor.TopLeft, new Vector2(0f, -340f), new Vector2(420f, 28f));
+
+            TextMeshProUGUI lockReason = CreateText(detail.transform, "QuestLockReason", "", 18, TextAlignmentOptions.Left, new Color(1f, 0.72f, 0.58f, 1f));
+            lockReason.textWrappingMode = TextWrappingModes.Normal;
+            SetRect(lockReason.rectTransform, Anchor.TopLeft, new Vector2(0f, -374f), new Vector2(620f, 42f));
+
+            Button actionButton = CreateTextButton(detail.transform, "AcceptQuestButton", "수락", Anchor.BottomRight, new Vector2(-120f, 36f), new Vector2(180f, 44f));
+            AddButtonAudio(actionButton);
+            TMP_Text actionButtonText = actionButton.GetComponentInChildren<TMP_Text>();
 
             GameObject rewardRoot = CreateRect(detail.transform, "RewardRoot", Anchor.BottomLeft, new Vector2(0f, 32f), new Vector2(620f, 96f));
             TextMeshProUGUI rewardTitle = CreateText(rewardRoot.transform, "RewardTitle", "보상 미리보기", 16, TextAlignmentOptions.Left, new Color(0.72f, 0.72f, 0.72f, 1f));
@@ -444,6 +464,10 @@ namespace DeadLetterOffice.Editor
             Set(questLogUI, "_areaText", area);
             Set(questLogUI, "_objectiveText", objective);
             Set(questLogUI, "_descriptionText", description);
+            Set(questLogUI, "_progressText", progress);
+            Set(questLogUI, "_lockReasonText", lockReason);
+            Set(questLogUI, "_actionButton", actionButton);
+            Set(questLogUI, "_actionButtonText", actionButtonText);
             Set(questLogUI, "_rewardRoot", rewardRoot);
             Set(questLogUI, "_rewardList", rewardList.transform);
             Set(questLogUI, "_rewardItemTemplate", rewardTemplate);

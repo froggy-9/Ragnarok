@@ -8,15 +8,19 @@ namespace DeadLetterOffice.UI
     public class QuestObjectiveHUD : MonoBehaviour
     {
         [SerializeField] private GameObject _root;
+        [SerializeField] private TMP_Text _titleText;
         [SerializeField] private TMP_Text _objectiveText;
+        [SerializeField] private TMP_Text _locationText;
         [SerializeField] private TMP_Text _progressText;
         [SerializeField] private TMP_Text _distanceText;
         [SerializeField] private Image _markerIcon;
         [SerializeField] private Transform _player;
         [SerializeField] private Transform _target;
-        [SerializeField] private string _defaultObjective = "Go to the current objective";
+        [SerializeField] private string _defaultObjective = "";
         [SerializeField] private int _staticDistanceMeters = 49;
         [SerializeField] private bool _showWhenObjectiveIsEmpty;
+
+        private bool _hasObjective;
 
         private void Awake()
         {
@@ -25,7 +29,7 @@ namespace DeadLetterOffice.UI
                 _root = gameObject;
             }
 
-            ApplyObjective(_defaultObjective, _target, _staticDistanceMeters, string.Empty);
+            ApplyObjective(_defaultObjective, _target, _staticDistanceMeters, string.Empty, string.Empty, string.Empty);
         }
 
         private void OnEnable()
@@ -51,38 +55,49 @@ namespace DeadLetterOffice.UI
 
         public void SetObjective(string objectiveText)
         {
-            ApplyObjective(objectiveText, _target, _staticDistanceMeters, string.Empty);
+            ApplyObjective(objectiveText, _target, _staticDistanceMeters, string.Empty, string.Empty, string.Empty);
         }
 
         public void SetObjective(string objectiveText, Transform target)
         {
-            ApplyObjective(objectiveText, target, -1, string.Empty);
+            ApplyObjective(objectiveText, target, -1, string.Empty, string.Empty, string.Empty);
         }
 
         public void SetObjective(string objectiveText, int distanceMeters)
         {
-            ApplyObjective(objectiveText, null, distanceMeters, string.Empty);
+            ApplyObjective(objectiveText, null, distanceMeters, string.Empty, string.Empty, string.Empty);
         }
 
         private void OnQuestObjectiveChanged(QuestObjectiveChangedEvent evt)
         {
-            ApplyObjective(evt.ObjectiveText, evt.Target, evt.StaticDistanceMeters, evt.ProgressText);
+            ApplyObjective(evt.ObjectiveText, evt.Target, evt.StaticDistanceMeters, evt.ProgressText, evt.QuestTitle, evt.LocationText);
         }
 
-        private void ApplyObjective(string objectiveText, Transform target, int staticDistanceMeters, string progressText)
+        private void ApplyObjective(string objectiveText, Transform target, int staticDistanceMeters, string progressText, string titleText, string locationText)
         {
             _target = target;
             _staticDistanceMeters = staticDistanceMeters;
 
             bool hasObjective = !string.IsNullOrWhiteSpace(objectiveText);
+            _hasObjective = hasObjective;
             if (_root != null)
             {
-                _root.SetActive(hasObjective || _showWhenObjectiveIsEmpty);
+                _root.SetActive(true);
+            }
+
+            if (_titleText != null)
+            {
+                _titleText.text = hasObjective ? titleText : string.Empty;
+            }
+
+            if (_locationText != null)
+            {
+                _locationText.text = hasObjective ? locationText : string.Empty;
             }
 
             if (_objectiveText != null)
             {
-                _objectiveText.text = hasObjective ? objectiveText : string.Empty;
+                _objectiveText.text = hasObjective ? BuildObjectiveText(titleText, locationText, objectiveText) : string.Empty;
             }
 
             if (_progressText != null)
@@ -98,10 +113,41 @@ namespace DeadLetterOffice.UI
             UpdateDistance();
         }
 
+        private string BuildObjectiveText(string titleText, string locationText, string objectiveText)
+        {
+            if (_titleText != null || _locationText != null)
+            {
+                return objectiveText;
+            }
+
+            if (string.IsNullOrWhiteSpace(titleText) && string.IsNullOrWhiteSpace(locationText))
+            {
+                return objectiveText;
+            }
+
+            if (string.IsNullOrWhiteSpace(locationText))
+            {
+                return $"{titleText}\n{objectiveText}";
+            }
+
+            if (string.IsNullOrWhiteSpace(titleText))
+            {
+                return $"{locationText}\n{objectiveText}";
+            }
+
+            return $"{titleText}\n<size=75%>{locationText}</size>\n{objectiveText}";
+        }
+
         private void UpdateDistance()
         {
             if (_distanceText == null)
             {
+                return;
+            }
+
+            if (!_hasObjective)
+            {
+                _distanceText.text = string.Empty;
                 return;
             }
 

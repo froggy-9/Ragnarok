@@ -81,10 +81,33 @@ namespace DeadLetterOffice.UI
                 return false;
             }
 
+            if (_acceptedQuest != null && _acceptedQuest != quest)
+            {
+                _acceptedQuest.Cancel();
+            }
+
             quest.Accept();
             _acceptedQuest = quest;
             PublishCurrentObjective();
             GameEventBus.Publish(new QuestAcceptedEvent(quest));
+            GameEventBus.Publish(new QuestLogChangedEvent());
+            return true;
+        }
+
+        public bool CancelQuest(StoryQuestSO quest)
+        {
+            if (quest == null || !quest.Accepted)
+            {
+                return false;
+            }
+
+            quest.Cancel();
+            if (_acceptedQuest == quest)
+            {
+                _acceptedQuest = null;
+            }
+
+            PublishCurrentObjective();
             GameEventBus.Publish(new QuestLogChangedEvent());
             return true;
         }
@@ -117,7 +140,7 @@ namespace DeadLetterOffice.UI
                 return;
             }
 
-            GameEventBus.Publish(new QuestObjectiveChangedEvent(quest.Objective, null, quest.DistanceMeters, quest.ProgressText));
+            GameEventBus.Publish(new QuestObjectiveChangedEvent(quest.Objective, null, quest.DistanceMeters, quest.ProgressText, quest.Title, quest.Area));
         }
 
         private StoryQuestSO GetCurrentQuest()

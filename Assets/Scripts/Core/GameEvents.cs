@@ -154,14 +154,18 @@ namespace DeadLetterOffice.Core
 
     public readonly struct QuestObjectiveChangedEvent
     {
+        public readonly string QuestTitle;
         public readonly string ObjectiveText;
+        public readonly string LocationText;
         public readonly Transform Target;
         public readonly int StaticDistanceMeters;
         public readonly string ProgressText;
 
-        public QuestObjectiveChangedEvent(string objectiveText, Transform target = null, int staticDistanceMeters = -1, string progressText = "")
+        public QuestObjectiveChangedEvent(string objectiveText, Transform target = null, int staticDistanceMeters = -1, string progressText = "", string questTitle = "", string locationText = "")
         {
+            QuestTitle = questTitle;
             ObjectiveText = objectiveText;
+            LocationText = locationText;
             Target = target;
             StaticDistanceMeters = staticDistanceMeters;
             ProgressText = progressText;
